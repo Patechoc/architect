@@ -1,0 +1,83 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "skap-kubernetes-build"
+  },
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "name": "skap-kubernetes-build",
+            "image": "container-registry-internal-private-pull.skatteetaten.io:443/aurora/architect:feature_SITJ_800_architect_eks-SNAPSHOT",
+            "command": [
+              "u01/bin/main",
+              "kube"
+            ],
+            "env": [
+              {
+                "name": "USER",
+                "value": "builder"
+              },
+              {
+                "name": "ARTIFACT_ID",
+                "value": "skap"
+              },
+              {
+                "name": "GROUP_ID",
+                "value": "no.skatteetaten.sikkerhet.autentisering"
+              },
+              {
+                "name": "VERSION",
+                "value": "feature_bump_docker-SNAPSHOT"
+              },
+              {
+                "name": "DOCKER_BASE_IMAGE",
+                "value": "aurora/wingnut11"
+              },
+              {
+                "name": "DOCKER_BASE_VERSION",
+                "value": "latest"
+              },
+              {
+                "name": "INTERNAL_PULL_REGISTRY",
+                "value": "container-registry-internal-private-pull.skatteetaten.io"
+              },
+              {
+                "name": "OUTPUT_REGISTRY",
+                "value": "na"
+              },
+              {
+                "name": "OUTPUT_REPOSITORY",
+                "value": "kubernetes/rules"
+              }
+
+
+            ],
+            "volumeMounts": [
+              {
+                "mountPath": "/u01/nexus",
+                "name": "nexus",
+                "readOnly": true
+              }
+            ],
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ],
+        "restartPolicy": "Never",
+        "volumes": [
+          {
+            "name": "nexus",
+            "secret": {
+              "defaultMode": 420,
+              "secretName": "nexus"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

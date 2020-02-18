@@ -38,6 +38,8 @@ func NewFileConfigReader(filepath string) ConfigReader {
 	return &FileConfigReader{pathToConfigFile: filepath}
 }
 
+
+
 func (m *FileConfigReader) ReadConfig() (*Config, error) {
 	dat, err := ioutil.ReadFile(m.pathToConfigFile)
 	if err != nil {
@@ -46,6 +48,7 @@ func (m *FileConfigReader) ReadConfig() (*Config, error) {
 
 	return newConfig(dat, false)
 }
+
 
 func (m *InClusterConfigReader) ReadConfig() (*Config, error) {
 	buildConfig := os.Getenv("BUILD")
