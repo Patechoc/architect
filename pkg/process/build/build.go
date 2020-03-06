@@ -159,9 +159,8 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 
 					metameta, err := json.Marshal(meta)
 					if err == nil {
-						tracer.AddImageMetadata("releasedImage", "releasedImage", string(metameta))
+						tracer.AddImageMetadata("deployableImage", "deployableImage", string(metameta))
 					}
-
 				}
 			}
 		}
