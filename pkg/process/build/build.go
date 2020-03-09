@@ -29,7 +29,13 @@ type metadata struct {
 }
 
 func Build(ctx context.Context, credentials *docker.RegistryCredentials, provider docker.ImageInfoProvider, cfg *config.Config, downloader nexus.Downloader, prepper Prepper, builder Builder) error {
-	tracer := trace.NewTracer(cfg.Sporingstjeneste, cfg.SporingsContext)
+	sporingscontext := cfg.SporingsContext
+	if sporingscontext == "" {
+		logrus.Infof("Use Context %s from the build definition", cfg.OwnerReferenceUid)
+		sporingscontext = cfg.OwnerReferenceUid
+	}
+	tracer := trace.NewTracer(cfg.Sporingstjeneste, sporingscontext)
+
 	logrus.Debugf("Download deliverable for GAV %-v", cfg.ApplicationSpec)
 	deliverable, err := downloader.DownloadArtifact(&cfg.ApplicationSpec.MavenGav, &cfg.NexusAccess)
 	if err != nil {
@@ -48,6 +54,7 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 	if err == nil {
 		d, err := json.Marshal(baseImageConfig)
 		if err == nil {
+			logrus.Debugf("Pushing trace data %s", string(d))
 			tracer.AddImageMetadata("baseImage", "image", string(d))
 		}
 	}
@@ -159,6 +166,7 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 
 					metameta, err := json.Marshal(meta)
 					if err == nil {
+						logrus.Debugf("Pushing trace data %s", string(metameta))
 						tracer.AddImageMetadata("deployableImage", "deployableImage", string(metameta))
 					}
 				}

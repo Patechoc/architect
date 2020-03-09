@@ -49,6 +49,7 @@ type Config struct {
 	NoPush          bool
 	SporingsContext  string
 	Sporingstjeneste string
+	OwnerReferenceUid string
 }
 
 type NexusAccess struct {
