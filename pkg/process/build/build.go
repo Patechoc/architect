@@ -2,7 +2,6 @@ package process
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/skatteetaten/architect/pkg/config"
@@ -21,6 +20,8 @@ type Builder interface {
 }
 
 type metadata struct {
+	ImageType    string `json:"type,omitempty"`
+	Kind         string `json:"kind,omitempty"`
 	ImageName    string
 	ImageInfo    map[string]interface{}
 	Tags         map[string]string
@@ -52,11 +53,12 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 
 	baseImageConfig, err := provider.GetImageConfig(application.BaseImageSpec.BaseImage, imageInfo.Digest)
 	if err == nil {
-		d, err := json.Marshal(baseImageConfig)
-		if err == nil {
-			logrus.Debugf("Pushing trace data %s", string(d))
-			tracer.AddImageMetadata("baseImage", "image", string(d))
-		}
+		baseImageConfig["type"] = "image"
+		baseImageConfig["kind"] = "baseImage"
+		baseImageConfig["name"] = application.BaseImageSpec.BaseImage
+		baseImageConfig["version"] = application.BaseImageSpec.BaseVersion
+		logrus.Debugf("Pushing trace data %v", baseImageConfig)
+		tracer.AddImageMetadata(baseImageConfig)
 	}
 
 	completeBaseImageVersion := imageInfo.CompleteBaseImageVersion
@@ -156,19 +158,16 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 
 				imageConfig, err := provider.GetImageConfig(buildConfig.DockerRepository, imageInfo.Digest)
 				if err == nil {
-					meta := metadata{
+					payload := metadata{
+						ImageType:    "deployableImage",
+						Kind:         "deployableImage",
 						ImageName:    buildConfig.DockerRepository,
 						Tags:         metaTags,
 						ImageInfo:    imageConfig,
 						NexusSHA1:    deliverable.SHA1,
 						Dependencies: dependencyMetadata,
 					}
-
-					metameta, err := json.Marshal(meta)
-					if err == nil {
-						logrus.Debugf("Pushing trace data %s", string(metameta))
-						tracer.AddImageMetadata("deployableImage", "deployableImage", string(metameta))
-					}
+					tracer.AddImageMetadata(payload)
 				}
 			}
 		}
