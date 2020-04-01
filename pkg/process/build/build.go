@@ -59,6 +59,9 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 		baseImageConfig["version"] = application.BaseImageSpec.BaseVersion
 		logrus.Debugf("Pushing trace data %v", baseImageConfig)
 		tracer.AddImageMetadata(baseImageConfig)
+	} else {
+		logrus.Warnf("Unable to find information about %s:%s. Got error: %s", application.BaseImageSpec.BaseImage,
+			application.BaseImageSpec.BaseVersion, err)
 	}
 
 	completeBaseImageVersion := imageInfo.CompleteBaseImageVersion
@@ -168,7 +171,13 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 						Dependencies: dependencyMetadata,
 					}
 					tracer.AddImageMetadata(payload)
+				} else {
+					logrus.Warnf("Unable to find information about %s:%s. Got error: %s",
+						buildConfig.DockerRepository, imageInfo.Digest, err)
 				}
+			} else {
+				logrus.Warnf("Unable to find information about %s:%s. Got error: %s",
+					buildConfig.DockerRepository, t[0], err)
 			}
 		}
 
