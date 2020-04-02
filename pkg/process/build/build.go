@@ -142,7 +142,7 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 
 		tags, err := tagResolver.ResolveTags(buildConfig.AuroraVersion, cfg.DockerSpec.PushExtraTags)
 		logrus.Debugf("Tag image %s with %s", imageid, tags)
-		t, _ := tagResolver.GetTags(buildConfig.AuroraVersion, cfg.DockerSpec.PushExtraTags)
+		t, _ := tagResolver.ResolveShortTag(buildConfig.AuroraVersion, cfg.DockerSpec.PushExtraTags)
 		metaTags := make(map[string]string)
 		for i, tag := range tags {
 			logrus.Infof("Tag: %s", tag)
@@ -160,6 +160,8 @@ func Build(ctx context.Context, credentials *docker.RegistryCredentials, provide
 			if err == nil {
 
 				imageConfig, err := provider.GetImageConfig(buildConfig.DockerRepository, imageInfo.Digest)
+
+				//Nexus uses sha1 digests on artifacts
 				if err == nil {
 					payload := metadata{
 						ImageType:    "deployableImage",
